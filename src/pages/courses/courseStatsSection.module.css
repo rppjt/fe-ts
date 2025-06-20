@@ -1,0 +1,17 @@
+.container {
+  background: #f9f9f9;
+  padding: 16px;
+  border-radius: 12px;
+  margin-top: 20px;
+}
+
+.statsBox,
+.myStats,
+.ranking {
+  margin-top: 12px;
+  line-height: 1.6;
+}
+
+.ranking ul {
+  padding-left: 1.2rem;
+}

@@ -1,0 +1,112 @@
+/* 전체 맵 컨테이너 스타일 */
+.mapWrapper {
+  width: 100%;
+  height: 100vh;
+  position: relative;
+}
+
+/* 실제 카카오맵이 들어가는 div */
+.map {
+  width: 100%;
+  height: 100%;
+  border: 1px solid #ccc;
+}
+
+/* 타이머 위치 및 스타일 */
+.timer {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  z-index: 10;
+  user-select: none;
+}
+
+/* 공통 버튼 스타일 */
+.runButton,
+.stopButton {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 10;
+  transition: background-color 0.2s ease-in-out;
+}
+
+/* 러닝 시작 버튼 (녹색) */
+.runButton {
+  background-color: #28a745;
+  color: white;
+}
+
+.runButton:hover {
+  background-color: #218838;
+}
+
+/* 러닝 종료 버튼 (빨간색) */
+.stopButton {
+  background-color: #dc3545;
+  color: white;
+}
+
+.stopButton:hover {
+  background-color: #c82333;
+}
+
+.summaryBox {
+  background-color: white;
+  padding: 1rem;
+  border-radius: 1rem;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  text-align: center;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.warning {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #ff4d4f;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -10px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}

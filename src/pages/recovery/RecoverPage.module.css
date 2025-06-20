@@ -1,0 +1,43 @@
+.container {
+  padding: 2rem;
+  max-width: 500px;
+  margin: 0 auto;
+  background: #f9f9f9;
+  border-radius: 10px;
+}
+
+.buttons {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  font-weight: bold;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+}
+
+button:first-child {
+  background-color: #10b981;
+  color: white;
+}
+
+button:last-child {
+  background-color: #d1d5db;
+  color: white;
+}
+
+.thumbnailWrapper {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.thumbnail {
+  width: 300px;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}

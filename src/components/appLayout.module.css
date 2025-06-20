@@ -1,0 +1,36 @@
+/* ✅ src/components/appLayout.module.css */
+
+.layoutWrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.header {
+  background-color: #ffffff;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: flex-start;
+}
+
+.homeButton {
+  background-color: #38bdf8;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.homeButton:hover {
+  background-color: #0ea5e9;
+}
+
+.mainContent {
+  flex: 1;
+  padding: 1.5rem;
+}
