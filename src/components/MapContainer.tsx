@@ -74,6 +74,10 @@ const MapContainer = () => {
   );
 
   const updateUserLocation = async (lat: number, lng: number): Promise<void> => {
+    console.log("📤 보낼 위치:", { latitude: lat, longitude: lng });
+    console.log("🧾 JSON body:", JSON.stringify({ latitude: lat, longitude: lng }));
+    console.log("📦 전송 타입:", typeof lat, typeof lng);
+
     try {
       await authFetch("http://localhost:8080/location", {
         method: "PATCH",
