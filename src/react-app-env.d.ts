@@ -19,6 +19,8 @@ declare global {
     namespace maps {
       class Map {
         setCenter(latlng: any): void;
+        setBounds(bounds: any): void;
+        getCenter(): LatLng;
       }
       class Marker {
         constructor(options: any);

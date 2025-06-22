@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 // ✅ fetch 옵션 타입
 interface AuthFetchOptions extends RequestInit {
-  headers?: Record<string, string>;
+  headers?: HeadersInit;
 }
 
 // ✅ 에러 응답 타입
@@ -23,6 +23,7 @@ export const useAuthFetch = () => {
   const maxRetry = 2;
 
   const authFetch = async (url: string, options: AuthFetchOptions = {}, retryCount = 0): Promise<Response> => {
+    console.log("✅ authFetch 실행됨. 현재 accessToken:", accessToken, "| retryCount:", retryCount);
     let token = accessToken;
 
     if (!token && retryCount === 0) {
@@ -48,6 +49,8 @@ export const useAuthFetch = () => {
       credentials: "include",
     };
 
+    console.log("🧪 accessToken 상태:", token);
+    console.log("📡 요청 정보:", url, config);
     let res = await fetch(url, config);
 
     // 🔐 401 Unauthorized 처리
