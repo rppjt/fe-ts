@@ -55,7 +55,7 @@ const CourseDetail: React.FC = () => {
 
   const fetchCourse = async () => {
     try {
-      const res = await authFetch(`http://localhost:8080/course/${id}`);
+      const res = await authFetch(`http://localhost:8080/recommended-course/${id}`);
       if (res.status === 401) {
         setError("로그인이 필요합니다.");
         return;
@@ -82,6 +82,7 @@ const CourseDetail: React.FC = () => {
     } catch (err) {
       console.error("통계 정보 로딩 실패:", err);
     }
+    console.log("✅ stats 상태:", stats);
   };
 
   useEffect(() => {
@@ -159,6 +160,7 @@ const CourseDetail: React.FC = () => {
 
   return (
     <div className={styles.container}>
+      {stats && <CourseStatus stats={stats} courseId={Number(id)} />}
       <h2>🏁 {course.title}</h2>
       <p>📍 도착지: {course.endLocationName}</p>
       <p>📏 거리: {course.totalDistance} km</p>
