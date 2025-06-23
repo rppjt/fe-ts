@@ -160,7 +160,7 @@ const Home = () => {
             >
               <p className={styles.popularTitle}>{course.courseTitle}</p>
               <p className={styles.popularInfo}>
-                📏 {course.totalDistance}km | 👥 {course.uniqueRunnerCount}명
+                📏 {course.totalDistance.toFixed(1)}km | 👥 {course.uniqueRunnerCount}명
               </p>
               <p className={styles.popularStats}>
                 🔥 {course.totalCompletionCount}회 | ⏱ {course.averagePace}분/km

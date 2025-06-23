@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useAuthFetch } from "../../utils/useAuthFetch";
 import styles from "./courseDetail.module.css";
+import CourseStatus from "./CourseStatus";
 
 // ✅ course 타입 정의
 interface CourseDetail {
@@ -24,10 +25,22 @@ interface User {
   name: string;
 }
 
+interface RunnerStat {
+  runnerName: string;
+  bestCompletionTimeSeconds: number;
+  bestPace: number;
+}
+
 interface CourseStats {
+  courseDistanceKm: number;
   totalCompletionCount: number;
   uniqueRunnerCount: number;
+  averageCompletionTimeSeconds: number;
   averagePace: number;
+  myCompletionCount: number;
+  myBestTimeSeconds: number | null;
+  myAveragePace: number | null;
+  topRunners: RunnerStat[];
 }
 
 const CourseDetail: React.FC = () => {
@@ -49,7 +62,7 @@ const CourseDetail: React.FC = () => {
       }
       if (!res.ok) throw new Error("응답 실패");
 
-      const data: CourseDetail = await res.json();
+      const data = await res.json();
       setCourse(data);
     } catch (err) {
       console.error("코스 정보 로딩 실패:", err);
@@ -61,15 +74,11 @@ const CourseDetail: React.FC = () => {
     try {
       const res = await authFetch(`http://localhost:8080/stats/recommended-course/${id}`);
       if (!res.ok) {
-        if (res.status === 404) return; // 인기 추천 코스가 아니면 무시
+        if (res.status === 404) return;
         throw new Error("통계 요청 실패");
       }
-      const data = await res.json();
-      setStats({
-        totalCompletionCount: data.totalCompletionCount,
-        uniqueRunnerCount: data.uniqueRunnerCount,
-        averagePace: data.averagePace,
-      });
+      const data: CourseStats = await res.json();
+      setStats(data);
     } catch (err) {
       console.error("통계 정보 로딩 실패:", err);
     }
@@ -155,16 +164,6 @@ const CourseDetail: React.FC = () => {
       <p>📏 거리: {course.totalDistance} km</p>
       <p>❤️ 좋아요: {course.likeCount}</p>
       <p>📝 설명: {course.description || "설명이 없습니다."}</p>
-
-      {stats && (
-        <div className={styles.statsBox}>
-          <h3>📊 인기 추천 코스 통계</h3>
-          <p>🔥 총 완주 횟수: {stats.totalCompletionCount}회</p>
-          <p>👥 참여자 수: {stats.uniqueRunnerCount}명</p>
-          <p>⏱ 평균 페이스: {stats.averagePace.toFixed(1)}분/km</p>
-          <button onClick={() => navigate(`/course-stats/${Number(id)}`)}>📈 전체 통계 보기</button>
-        </div>
-      )}
 
       <div className={styles.buttonGroup}>
         {!isOwner && (

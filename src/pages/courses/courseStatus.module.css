@@ -1,0 +1,52 @@
+.container {
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background: #fff;
+  padding: 1.5rem;
+  max-height: 400px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.scrollBox {
+  overflow-y: auto;
+  max-height: 320px;
+  padding-right: 0.5rem;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem;
+}
+
+.runnerList {
+  padding-left: 1rem;
+  font-size: 14px;
+}
+
+.runnerList li {
+  margin-bottom: 0.4rem;
+}
+
+.challengeBtn {
+  background-color: #4f46e5;
+  color: white;
+  font-weight: bold;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+.challengeBtn:hover {
+  background-color: #4338ca;
+}

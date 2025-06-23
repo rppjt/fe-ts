@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import styles from "./popularCourses.module.css";
 
 interface PopularCourse {
   courseId: number;
@@ -29,9 +30,9 @@ const PopularCourses = () => {
   if (error) return <div>{error}</div>;
 
   return (
-    <div>
+    <div className={styles.gridContainer}>
       {courses.map((course) => (
-        <div key={course.courseId} className='course-card' onClick={() => navigate(`/course/${course.courseId}`)}>
+        <div key={course.courseId} className={styles.courseCard} onClick={() => navigate(`/course/${course.courseId}`)}>
           <h3>{course.courseTitle}</h3>
           <p>🏃 {course.distanceKm.toFixed(1)}km</p>
           <p>🔥 {course.totalCompletionCount}명 완주</p>
