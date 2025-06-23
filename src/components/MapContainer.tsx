@@ -55,6 +55,8 @@ const MapContainer = () => {
   const [averagePace, setAveragePace] = useState("");
   const [metaData, setMetaData] = useState<RunMetaData | null>(null);
   const [offCourseWarning, setOffCourseWarning] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
+  const prevPositionRef = useRef<LatLng | null>(null);
 
   const handleMapReady = useCallback((): void => {
     console.log("✅ onMapReady() 호출됨");
@@ -263,7 +265,7 @@ const MapContainer = () => {
 
       alert("✅ 러닝 기록이 저장되었습니다!");
       setShowSummary(false);
-      navigate("/myrecords");
+      navigate("/my-records");
     } catch (error: any) {
       console.error("❌ 저장 실패:", error.message);
       alert("⚠️ 저장 실패! 복구 기능이 활성화됩니다.");
@@ -414,6 +416,35 @@ const MapContainer = () => {
 
     return () => clearInterval(interval);
   }, [showFriendsOnMap]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+
+          const prev = prevPositionRef.current;
+          const movedEnough = !prev || getDistanceFromLatLonInMeters(prev.lat, prev.lng, latitude, longitude) > 50;
+
+          if (!movedEnough || isFetching) return;
+
+          setIsFetching(true);
+          try {
+            await authFetch(`http://localhost:8080/location/nearby?radius=0.5`);
+            prevPositionRef.current = { lat: latitude, lng: longitude };
+          } catch (err) {
+            console.error("❌ 친구 위치 조회 실패:", err);
+          } finally {
+            setIsFetching(false);
+          }
+        },
+        (err) => console.error("위치 조회 실패", err),
+        { enableHighAccuracy: true }
+      );
+    }, 30000); // 30초마다 실행
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem("runningState");

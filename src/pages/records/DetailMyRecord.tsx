@@ -19,6 +19,7 @@ interface RunningRecord {
   startedTime: string;
   endedTime: string;
   thumbnailUrl?: string;
+  isRegisteredAsCourse?: boolean;
 }
 
 const DetailMyRecord: React.FC = () => {
@@ -38,27 +39,13 @@ const DetailMyRecord: React.FC = () => {
         if (!res.ok) throw new Error("기록 불러오기 실패");
         const data: RunningRecord = await res.json();
         setRecord(data);
+        setIsRecommended(data.isRegisteredAsCourse ?? false);
       } catch (err) {
         console.error(err);
       }
     };
 
     fetchRecord();
-  }, [id]);
-
-  // 추천 여부 확인
-  useEffect(() => {
-    const checkRecommendation = async () => {
-      try {
-        const res = await authFetch(`http://localhost:8080/course/check/${id}`);
-        const data = await res.json();
-        setIsRecommended(data.isRecommended);
-      } catch (err) {
-        console.error("❌ 추천 여부 확인 실패:", err);
-        setIsRecommended(false);
-      }
-    };
-    checkRecommendation();
   }, [id]);
 
   // 카카오 지도 렌더링
