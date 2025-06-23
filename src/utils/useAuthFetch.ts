@@ -17,24 +17,38 @@ interface RefreshResponse {
   accessToken?: string;
 }
 
+// ✅ 중복 navigate 방지 전역 변수
+let hasNavigated = false;
+
 export const useAuthFetch = () => {
   const { accessToken, setAccessToken } = useAuth();
   const navigate = useNavigate();
   const maxRetry = 2;
 
-  const authFetch = async (url: string, options: AuthFetchOptions = {}, retryCount = 0): Promise<Response> => {
+  // ✅ 단 한 번만 navigate("/") 호출
+  const navigateToLogin = (reason: string) => {
+    if (!hasNavigated) {
+      console.warn("🚪 로그아웃 처리:", reason);
+      hasNavigated = true;
+      setAccessToken(null);
+      navigate("/");
+    }
+  };
+
+  // ✅ 메인 fetch 함수
+  const authFetch = async (url: string, options: AuthFetchOptions = {}, retryCount: number = 0): Promise<Response> => {
     console.log("✅ authFetch 실행됨. 현재 accessToken:", accessToken, "| retryCount:", retryCount);
+
     let token = accessToken;
 
+    // ✅ 최초 토큰 없음 → refresh 시도
     if (!token && retryCount === 0) {
       const refreshed = await tryRefreshToken();
       if (refreshed) {
         token = refreshed;
         setAccessToken(refreshed);
       } else {
-        console.warn("🚫 토큰 없음 + refresh 실패 → 로그아웃");
-        setAccessToken(null);
-        navigate("/");
+        navigateToLogin("accessToken 없음 + refresh 실패");
         throw new Error("accessToken 없음 + refresh 실패");
       }
     }
@@ -49,20 +63,18 @@ export const useAuthFetch = () => {
       credentials: "include",
     };
 
-    console.log("🧪 accessToken 상태:", token);
     console.log("📡 요청 정보:", url, config);
-    let res = await fetch(url, config);
 
-    // 🔐 401 Unauthorized 처리
+    const res = await fetch(url, config);
+
+    // ✅ 401 처리: 재시도 또는 로그아웃
     if (res.status === 401 && retryCount < maxRetry) {
       const error: ErrorResponse = await res.json();
 
       if (error.code === "J001") {
         const newToken = await tryRefreshToken();
         if (!newToken) {
-          console.warn("❌ accessToken 재발급 실패");
-          setAccessToken(null);
-          navigate("/");
+          navigateToLogin("accessToken 재발급 실패");
           throw new Error("accessToken 재발급 실패");
         }
 
@@ -79,23 +91,21 @@ export const useAuthFetch = () => {
         };
 
         return await authFetch(url, retryConfig, retryCount + 1);
-      } else if (error.code === "J002") {
-        console.warn("❌ refreshToken 만료, 재로그인 필요");
-        setAccessToken(null);
-        navigate("/");
-        throw new Error("Refresh Token 만료");
-      } else {
-        console.warn("❌ 기타 인증 에러:", error.message);
-        setAccessToken(null);
-        navigate("/");
-        throw new Error(error.message || "인증 실패");
       }
+
+      if (error.code === "J002") {
+        navigateToLogin("refreshToken 만료");
+        throw new Error("Refresh Token 만료");
+      }
+
+      navigateToLogin(error.message || "기타 인증 실패");
+      throw new Error(error.message || "기타 인증 실패");
     }
 
     return res;
   };
 
-  // 🔁 accessToken 재발급 요청
+  // ✅ 토큰 재발급 로직
   const tryRefreshToken = async (): Promise<string | null> => {
     try {
       const res = await fetch("http://localhost:8080/auth/refresh", {
