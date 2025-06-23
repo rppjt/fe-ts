@@ -67,6 +67,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         console.error("❌ 사용자 정보 로딩 실패:", err);
         setUser(null);
         setIsAuthReady(true);
+      })
+      .finally(() => {
+        setIsAuthReady(true);
       });
   }, []);
 

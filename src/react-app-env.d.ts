@@ -18,15 +18,14 @@ declare global {
   namespace kakao {
     namespace maps {
       class Map {
-        setCenter(latlng: LatLng): void;
+        setCenter(latlng: any): void;
         setBounds(bounds: any): void;
         getCenter(): LatLng;
-        panTo(latlng: LatLng): void;
       }
       class Marker {
-        constructor(options: { position: LatLng });
+        constructor(options: any);
         setMap(map: Map | null): void;
-        setPosition(latlng: LatLng): void;
+        setPosition(latlng: any): void;
       }
       class LatLng {
         constructor(lat: number, lng: number);
@@ -34,8 +33,8 @@ declare global {
         getLng(): number;
       }
       class Polyline {
-        constructor(options: { path: LatLng[] });
-        setMap(map: Map | null): void;
+        constructor(options: any);
+        setMap(map: any): void;
         getPath(): LatLng[];
       }
     }

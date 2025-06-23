@@ -2,9 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuthFetch } from "../../utils/useAuthFetch";
 import styles from "./StatisticsSection.module.css";
 import PersonalStatsCard, { PersonalStatsData } from "./PersonalStatsCard";
-
 import WeeklyStatsCard, { WeeklyStatsData } from "./WeeklyStatsCard";
-
 import MonthlyStatsCard, { MonthlyStatsData } from "./MonthlyStatsCard";
 
 const StatisticsSection = () => {

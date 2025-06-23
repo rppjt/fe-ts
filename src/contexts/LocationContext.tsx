@@ -17,7 +17,7 @@ interface LocationProviderProps {
 
 export const LocationProvider = ({ children }: LocationProviderProps) => {
   const authFetch = useAuthFetch();
-  const { accessToken } = useAuth();
+  const { accessToken, isAuthReady } = useAuth();
 
   const [isSharing, setIsSharing] = useState<boolean>(false);
   const [showFriendsOnMap, setShowFriendsOnMap] = useState<boolean>(() => {
@@ -26,6 +26,7 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
   });
 
   useEffect(() => {
+    if (!isAuthReady) return;
     if (!accessToken) return;
 
     const fetchSharingStatus = async () => {
@@ -40,7 +41,7 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
     };
 
     fetchSharingStatus();
-  }, [accessToken]);
+  }, [accessToken, isAuthReady]);
 
   const toggleSharing = async () => {
     const next = !isSharing;
