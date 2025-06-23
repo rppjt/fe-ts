@@ -1,9 +1,9 @@
-import { useEffect, MutableRefObject } from "react";
+import { useEffect, RefObject } from "react";
 
 interface UseKakaoMapProps {
-  mapRef: MutableRefObject<kakao.maps.Map | null>;
-  markerRef: MutableRefObject<kakao.maps.Marker | null>;
-  containerRef: MutableRefObject<HTMLDivElement | null>;
+  mapRef: RefObject<kakao.maps.Map | null>;
+  markerRef: RefObject<kakao.maps.Marker | null>;
+  containerRef: RefObject<HTMLDivElement | null>;
   onMapReady?: () => void;
 }
 

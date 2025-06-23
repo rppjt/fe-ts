@@ -31,16 +31,12 @@ const PopularCourses = () => {
   return (
     <div>
       {courses.map((course) => (
-        <div
-          key={course.courseId}
-          className='course-card'
-          onClick={() => navigate(`/courses/${course.courseId}/stats`)}
-        >
+        <div key={course.courseId} className='course-card' onClick={() => navigate(`/course/${course.courseId}`)}>
           <h3>{course.courseTitle}</h3>
           <p>🏃 {course.distanceKm.toFixed(1)}km</p>
           <p>🔥 {course.totalCompletionCount}명 완주</p>
           <p>👥 {course.uniqueRunnerCount}명 참여</p>
-          <p>⏱️ {course.averagePace}분/km</p>
+          <p>⏱️ {course.averagePace.toFixed(1)}분/km</p>
         </div>
       ))}
     </div>

@@ -1,6 +1,5 @@
-import { useRef, useState } from "react";
+import { useRef, useState, RefObject } from "react";
 import { getDistanceFromLatLonInMeters, convertPathToGeoJSON } from "../utils/geoUtils";
-import { MutableRefObject } from "react";
 
 interface LatLng {
   lat: number;
@@ -22,10 +21,12 @@ interface StoppedRunData {
   pathGeoJson: string;
 }
 
-export const useRunningTracker = (
-  mapRef: MutableRefObject<kakao.maps.Map | null>,
-  markerRef: MutableRefObject<kakao.maps.Marker | null>
-) => {
+interface UseRunningTrackerProps {
+  mapRef: RefObject<kakao.maps.Map | null>;
+  markerRef: RefObject<kakao.maps.Marker | null>;
+}
+
+export const useRunningTracker = ({ mapRef, markerRef }: UseRunningTrackerProps) => {
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [path, setPath] = useState<LatLng[]>([]);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
