@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import styles from "./popularCourses.module.css";
-import { useAuthFetch } from "../../utils/useAuthFetch";
-import { useAuth } from "../../contexts/AuthContext";
 
-// ✅ 서버에서 내려주는 코스 타입
 interface PopularCourse {
   courseId: number;
   courseTitle: string;
@@ -12,58 +8,41 @@ interface PopularCourse {
   distanceKm: number;
   totalCompletionCount: number;
   uniqueRunnerCount: number;
-  averagePace: string;
+  averagePace: number;
 }
 
-const PopularCourses: React.FC = () => {
+const PopularCourses = () => {
   const [courses, setCourses] = useState<PopularCourse[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
-  const authFetch = useAuthFetch();
-  const { isAuthReady } = useAuth();
 
   useEffect(() => {
-    if (!isAuthReady) return;
+    fetch("/stats/popular-courses")
+      .then((res) => res.json())
+      .then(setCourses)
+      .catch(() => setError("데이터를 불러오지 못했습니다."))
+      .finally(() => setLoading(false));
+  }, []);
 
-    const fetchPopularCourses = async () => {
-      try {
-        const res = await authFetch("http://localhost:8080/stats/popular-courses");
-        if (!res.ok) throw new Error("인기 코스 조회 실패");
-        const data: PopularCourse[] = await res.json();
-        setCourses(data);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPopularCourses();
-  }, [isAuthReady]);
-
-  if (loading) return <p>로딩 중...</p>;
-  if (error) return <p>❌ {error}</p>;
+  if (loading) return <div>로딩 중...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
-    <div className={styles.container}>
-      <h2>🔥 인기 추천 코스</h2>
-      <div className={styles.courseList}>
-        {courses.map((course) => (
-          <div
-            key={course.courseId}
-            className={styles.courseCard}
-            onClick={() => navigate(`/course-stats/${course.courseId}`)}
-          >
-            <h3>{course.courseTitle}</h3>
-            <p>👤 {course.creatorName}</p>
-            <p>📏 {course.distanceKm}km</p>
-            <p>🔥 완주 {course.totalCompletionCount}회</p>
-            <p>👥 {course.uniqueRunnerCount}명 참여</p>
-            <p>⏱ 평균 페이스 {course.averagePace}분/km</p>
-          </div>
-        ))}
-      </div>
+    <div>
+      {courses.map((course) => (
+        <div
+          key={course.courseId}
+          className='course-card'
+          onClick={() => navigate(`/courses/${course.courseId}/stats`)}
+        >
+          <h3>{course.courseTitle}</h3>
+          <p>🏃 {course.distanceKm.toFixed(1)}km</p>
+          <p>🔥 {course.totalCompletionCount}명 완주</p>
+          <p>👥 {course.uniqueRunnerCount}명 참여</p>
+          <p>⏱️ {course.averagePace}분/km</p>
+        </div>
+      ))}
     </div>
   );
 };

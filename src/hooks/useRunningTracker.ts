@@ -1,5 +1,6 @@
-import { useRef, useState, MutableRefObject } from "react";
+import { useRef, useState } from "react";
 import { getDistanceFromLatLonInMeters, convertPathToGeoJSON } from "../utils/geoUtils";
+import { MutableRefObject } from "react";
 
 interface LatLng {
   lat: number;
@@ -66,7 +67,7 @@ export const useRunningTracker = (
     watchIdRef.current = navigator.geolocation.watchPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        const newLatLng = new window.kakao.maps.LatLng(latitude, longitude);
+        const newLatLng = new kakao.maps.LatLng(latitude, longitude);
 
         const prev = prevPositionRef.current;
         if (prev) {

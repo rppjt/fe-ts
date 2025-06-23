@@ -9,6 +9,8 @@ import CourseDetail from "./pages/courses/CourseDetail";
 import MyPage from "./pages/mypage/MyPage";
 import RecoverPage from "./pages/recovery/RecoverPage";
 import RunPage from "./pages/RunPage";
+import PopularCourses from "./pages/courses/PopularCourses";
+import CourseStats from "./pages/courses/CourseStats";
 import AppLayout from "./components/AppLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { LocationProvider } from "./contexts/LocationContext";
@@ -84,6 +86,22 @@ const App: React.FC = () => {
             element={
               <ProtectedRoute>
                 <RunPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/courses/popular'
+            element={
+              <ProtectedRoute>
+                <PopularCourses />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path='/courses/:id/stats'
+            element={
+              <ProtectedRoute>
+                <CourseStats />
               </ProtectedRoute>
             }
           />
