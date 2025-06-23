@@ -94,10 +94,6 @@ const Home = () => {
     navigate(`/course/${id}`);
   };
 
-  const handleClickStats = (id: number) => {
-    navigate(`/course-stats/${id}`);
-  };
-
   if (!user) return <div>사용자 정보를 불러오는 중...</div>;
 
   return (
@@ -157,7 +153,11 @@ const Home = () => {
         <h2>🔥 인기 추천 코스</h2>
         <div className={styles.popularGrid}>
           {popularCourses.slice(0, 10).map((course) => (
-            <div key={course.courseId} className={styles.popularCard} onClick={() => handleClickStats(course.courseId)}>
+            <div
+              key={course.courseId}
+              className={styles.popularCard}
+              onClick={() => handleClickCourse(course.courseId)}
+            >
               <p className={styles.popularTitle}>{course.courseTitle}</p>
               <p className={styles.popularInfo}>
                 📏 {course.totalDistance}km | 👥 {course.uniqueRunnerCount}명

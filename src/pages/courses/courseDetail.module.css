@@ -62,3 +62,11 @@
 .followButton:hover {
   background-color: #0ea5e9;
 }
+
+.statsBox {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+}

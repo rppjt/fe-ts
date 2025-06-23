@@ -70,10 +70,10 @@ const MapContainer = () => {
     onMapReady: handleMapReady, // ✅ 고정된 함수 전달
   });
 
-  const { isRunning, path, startRunning, stopRunning, elapsedTime, restoreRunningState } = useRunningTracker(
+  const { isRunning, path, elapsedTime, startRunning, stopRunning, restoreRunningState } = useRunningTracker({
     mapRef,
-    markerRef
-  );
+    markerRef,
+  });
 
   const updateUserLocation = async (lat: number, lng: number): Promise<void> => {
     console.log("📤 보낼 위치:", { latitude: lat, longitude: lng });
