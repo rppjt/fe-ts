@@ -5,7 +5,7 @@ import { useAuthFetch } from "../../utils/useAuthFetch";
 import styles from "./courseDetail.module.css";
 import CourseStatus from "./CourseStatus";
 
-// ✅ course 타입 정의
+// ✅ 타입 정의
 interface CourseDetail {
   id: number;
   userId: number;
@@ -16,13 +16,6 @@ interface CourseDetail {
   likeCount: number;
   isLiked: boolean;
   isBookmarked: boolean;
-}
-
-// ✅ user 타입 (AuthContext에서 반환되는 구조)
-interface User {
-  userId: number;
-  email: string;
-  name: string;
 }
 
 interface RunnerStat {
@@ -54,15 +47,17 @@ const CourseDetail: React.FC = () => {
   const [stats, setStats] = useState<CourseStats | null>(null);
 
   const fetchCourse = async () => {
+    if (!id) return;
+
     try {
-      const res = await authFetch(`http://localhost:8080/recommended-course/${id}`);
+      const res = await authFetch(`http://localhost:8080/course/${id}`);
       if (res.status === 401) {
         setError("로그인이 필요합니다.");
         return;
       }
       if (!res.ok) throw new Error("응답 실패");
 
-      const data = await res.json();
+      const data: CourseDetail = await res.json();
       setCourse(data);
     } catch (err) {
       console.error("코스 정보 로딩 실패:", err);
@@ -71,8 +66,10 @@ const CourseDetail: React.FC = () => {
   };
 
   const fetchStats = async () => {
+    if (!id) return;
+
     try {
-      const res = await authFetch(`http://localhost:8080/stats/recommended-course/${id}`);
+      const res = await authFetch(`http://localhost:8080/course/${id}`);
       if (!res.ok) {
         if (res.status === 404) return;
         throw new Error("통계 요청 실패");
@@ -85,13 +82,16 @@ const CourseDetail: React.FC = () => {
   };
 
   useEffect(() => {
-    if (isAuthReady && accessToken && currentUser?.userId) {
+    console.log("현재 코스 id:", id);
+    if (isAuthReady && accessToken && currentUser?.userId && id) {
       fetchCourse();
       fetchStats();
     }
-  }, [isAuthReady, accessToken, currentUser?.userId]);
+  }, [isAuthReady, accessToken, currentUser?.userId, id]);
 
   const toggleLike = async () => {
+    if (!id || !course) return;
+
     try {
       const res = await authFetch(`http://localhost:8080/like/${id}`, {
         method: "POST",
@@ -99,46 +99,39 @@ const CourseDetail: React.FC = () => {
 
       if (!res.ok) throw new Error("좋아요 요청 실패");
 
-      setCourse((prev) => {
-        if (!prev) return prev;
-        const newLiked = !prev.isLiked;
-        const newCount = newLiked ? prev.likeCount + 1 : prev.likeCount - 1;
-        return {
-          ...prev,
-          isLiked: newLiked,
-          likeCount: newCount,
-        };
-      });
+      setCourse((prev) =>
+        prev
+          ? {
+              ...prev,
+              isLiked: !prev.isLiked,
+              likeCount: prev.isLiked ? prev.likeCount - 1 : prev.likeCount + 1,
+            }
+          : prev
+      );
     } catch (err) {
       console.error("좋아요 실패:", err);
     }
   };
 
   const toggleBookmark = async () => {
+    if (!id || !course) return;
+
     try {
       const res = await authFetch(`http://localhost:8080/course/bookmark/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          isBookmarked: !course?.isBookmarked,
-        }),
+        body: JSON.stringify({ isBookmarked: !course.isBookmarked }),
       });
 
       if (!res.ok) throw new Error("북마크 요청 실패");
 
-      setCourse((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          isBookmarked: !prev.isBookmarked,
-        };
-      });
+      setCourse((prev) => prev && { ...prev, isBookmarked: !prev.isBookmarked });
     } catch (err) {
       console.error("북마크 실패:", err);
     }
   };
 
-  if (!isAuthReady || !currentUser?.userId || !accessToken) {
+  if (!isAuthReady || !accessToken || !currentUser?.userId) {
     return <p>🔒 로그인 정보를 확인 중입니다...</p>;
   }
 
