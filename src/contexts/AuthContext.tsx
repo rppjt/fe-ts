@@ -39,9 +39,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
+
     if (!token) {
       setUser(null);
-      setIsAuthReady(true);
+      setIsAuthReady(true); // 이건 유지
       return;
     }
 
@@ -61,15 +62,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       .then((data: User) => {
         console.log("✅ 사용자 정보 불러오기 성공:", data);
         setUser(data);
-        setIsAuthReady(true);
       })
       .catch((err) => {
         console.error("❌ 사용자 정보 로딩 실패:", err);
         setUser(null);
-        setIsAuthReady(true);
       })
       .finally(() => {
-        setIsAuthReady(true);
+        console.log("🟢 AuthContext 초기화 완료됨");
+        setIsAuthReady(true); // 여기에만!
       });
   }, []);
 

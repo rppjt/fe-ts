@@ -82,7 +82,6 @@ const CourseDetail: React.FC = () => {
     } catch (err) {
       console.error("통계 정보 로딩 실패:", err);
     }
-    console.log("✅ stats 상태:", stats);
   };
 
   useEffect(() => {

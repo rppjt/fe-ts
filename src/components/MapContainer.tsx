@@ -59,7 +59,6 @@ const MapContainer = () => {
   const prevPositionRef = useRef<LatLng | null>(null);
 
   const handleMapReady = useCallback((): void => {
-    console.log("✅ onMapReady() 호출됨");
     setMapReady(true);
   }, []);
 
@@ -76,10 +75,6 @@ const MapContainer = () => {
   });
 
   const updateUserLocation = async (lat: number, lng: number): Promise<void> => {
-    console.log("📤 보낼 위치:", { latitude: lat, longitude: lng });
-    console.log("🧾 JSON body:", JSON.stringify({ latitude: lat, longitude: lng }));
-    console.log("📦 전송 타입:", typeof lat, typeof lng);
-
     try {
       await authFetch("http://localhost:8080/location", {
         method: "PATCH",
@@ -124,45 +119,6 @@ const MapContainer = () => {
     return () => clearInterval(interval);
   }, [isRunning, path]);
 
-  /* 🔁 [시뮬레이션] 더미 위치 좌표 테스트용 
-    useEffect(() => {
-    if (!isRunning || !coursePolylineRef.current) return;
-    const dummyPath = [
-      { lat: 37.5000, lng: 127.0000 },
-      { lat: 37.5050, lng: 127.0050 },
-      { lat: 37.5100, lng: 127.0100 },
-      { lat: 37.5150, lng: 127.0150 },
-      { lat: 37.5200, lng: 127.0400 }, // 유도선에서 벗어나는 지점 (.1000변경)
-    ];
-
-    let idx = 0;
-    const interval = setInterval(() => {
-      if (idx >= dummyPath.length) {
-        clearInterval(interval);
-        return;
-      }
-
-      const point = dummyPath[idx];
-      const latlng = new window.kakao.maps.LatLng(point.lat, point.lng);
-      markerRef.current.setPosition(latlng);
-      mapRef.current.panTo(latlng);
-      path.push({ lat: point.lat, lng: point.lng });
-
-      if (coursePolylineRef.current) {
-        const distanceToPath = coursePolylineRef.current.getPath().reduce((min, latlng) => {
-          const d = getDistanceFromLatLonInMeters(latlng.getLat(), latlng.getLng(), point.lat, point.lng);
-          return Math.min(min, d);
-        }, Infinity);
-        console.log("📏 유도선 거리:", distanceToPath);
-        setOffCourseWarning(distanceToPath > 30);
-      }
-
-      idx++;
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [isRunning,  coursePolylineRef.current]);
-  */
   const handleStop = (): void => {
     const result = stopRunning();
 
@@ -288,12 +244,7 @@ const MapContainer = () => {
   };
 
   useEffect(() => {
-    console.log("🌀 [useEffect] mapReady:", mapReady, "| courseId:", courseId);
-
     const drawCoursePolyline = async (): Promise<void> => {
-      console.log("🧭 drawCoursePolyline 실행됨, courseId:", courseId);
-      console.log("📍 현재 location.search:", location.search);
-
       if (!courseId || !mapRef.current) {
         console.warn("❌ courseId 또는 mapRef.current 없음");
         return;
@@ -301,7 +252,6 @@ const MapContainer = () => {
 
       try {
         const res = await authFetch(`http://localhost:8080/course/${courseId}`);
-        console.log("✅ 응답 상태:", res.status);
         if (!res.ok) throw new Error("추천 코스 로딩 실패");
 
         const data = await res.json();
