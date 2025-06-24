@@ -45,6 +45,7 @@ export const useAuthFetch = () => {
     if (!token && retryCount === 0) {
       const refreshed = await tryRefreshToken();
       if (refreshed) {
+        hasNavigated = false;
         token = refreshed;
         setAccessToken(refreshed);
       } else {
@@ -68,16 +69,22 @@ export const useAuthFetch = () => {
     const res = await fetch(url, config);
 
     // ✅ 401 처리: 재시도 또는 로그아웃
-    if (res.status === 401 && retryCount < maxRetry) {
-      const error: ErrorResponse = await res.json();
+    if (res.status === 401) {
+      let error: ErrorResponse = { code: "UNKNOWN", message: "알 수 없는 인증 오류" };
+      try {
+        error = await res.json();
+      } catch (e) {
+        console.warn("⚠️ 401 응답 JSON 파싱 실패:", e);
+      }
 
-      if (error.code === "J001") {
+      if (retryCount < maxRetry && error.code === "J001") {
         const newToken = await tryRefreshToken();
         if (!newToken) {
           navigateToLogin("accessToken 재발급 실패");
-          throw new Error("accessToken 재발급 실패");
+          return new Response(null, { status: 401 }); // ✅ 안전하게 종료
         }
 
+        hasNavigated = false;
         setAccessToken(newToken);
 
         const retryConfig: AuthFetchOptions = {
@@ -95,11 +102,11 @@ export const useAuthFetch = () => {
 
       if (error.code === "J002") {
         navigateToLogin("refreshToken 만료");
-        throw new Error("Refresh Token 만료");
+        return new Response(null, { status: 401 }); // ✅ 종료
       }
 
       navigateToLogin(error.message || "기타 인증 실패");
-      throw new Error(error.message || "기타 인증 실패");
+      return new Response(null, { status: 401 }); // ✅ 추가
     }
 
     return res;
