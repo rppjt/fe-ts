@@ -9,6 +9,7 @@ import CourseStatus from "./CourseStatus";
 interface CourseDetail {
   id: number;
   userId: number;
+  userName: string;
   title: string;
   description: string;
   totalDistance: number;
@@ -25,6 +26,9 @@ interface RunnerStat {
 }
 
 interface CourseStats {
+  courseId: number;
+  courseTitle: string;
+  creatorName: string;
   courseDistanceKm: number;
   totalCompletionCount: number;
   uniqueRunnerCount: number;
@@ -42,50 +46,41 @@ const CourseDetail: React.FC = () => {
   const { accessToken, user: currentUser, isAuthReady } = useAuth();
   const authFetch = useAuthFetch();
 
-  const [course, setCourse] = useState<CourseDetail | null>(null);
+  const [course, setCourse] = useState<(CourseDetail & CourseStats) | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [stats, setStats] = useState<CourseStats | null>(null);
+  const [statsError, setStatsError] = useState(false);
 
-  const fetchCourse = async () => {
+  const fetchCourseWithStatus = async () => {
     if (!id) return;
 
     try {
       const res = await authFetch(`http://localhost:8080/course/${id}`);
+
       if (res.status === 401) {
-        setError("로그인이 필요합니다.");
+        setError("🔐 로그인이 필요합니다.");
         return;
       }
+
       if (!res.ok) throw new Error("응답 실패");
 
-      const data: CourseDetail = await res.json();
+      const data: CourseDetail & CourseStats = await res.json();
       setCourse(data);
+
+      // 통계 필드가 아예 누락된 경우에만 통계 오류로 간주
+      if (data.totalCompletionCount === undefined || data.topRunners === undefined) {
+        setStatsError(true);
+      } else {
+        setStatsError(false);
+      }
     } catch (err) {
       console.error("코스 정보 로딩 실패:", err);
-      setError("코스 정보를 불러오는 중 오류가 발생했습니다.");
-    }
-  };
-
-  const fetchStats = async () => {
-    if (!id) return;
-
-    try {
-      const res = await authFetch(`http://localhost:8080/course/${id}`);
-      if (!res.ok) {
-        if (res.status === 404) return;
-        throw new Error("통계 요청 실패");
-      }
-      const data: CourseStats = await res.json();
-      setStats(data);
-    } catch (err) {
-      console.error("통계 정보 로딩 실패:", err);
+      setError("❌ 코스 정보를 불러오는 중 오류가 발생했습니다.");
     }
   };
 
   useEffect(() => {
-    console.log("현재 코스 id:", id);
     if (isAuthReady && accessToken && currentUser?.userId && id) {
-      fetchCourse();
-      fetchStats();
+      fetchCourseWithStatus();
     }
   }, [isAuthReady, accessToken, currentUser?.userId, id]);
 
@@ -152,8 +147,9 @@ const CourseDetail: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      {stats && <CourseStatus stats={stats} courseId={Number(id)} />}
+      {course && <CourseStatus stats={course} courseId={course.id} />}
       <h2>🏁 {course.title}</h2>
+      <p>🏃‍♂️ {course.userName}님이 만든 러닝 코스!</p>
       <p>📍 도착지: {course.endLocationName}</p>
       <p>📏 거리: {course.totalDistance} km</p>
       <p>❤️ 좋아요: {course.likeCount}</p>

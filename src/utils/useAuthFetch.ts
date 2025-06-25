@@ -38,6 +38,7 @@ export const useAuthFetch = () => {
   // ✅ 메인 fetch 함수
   const authFetch = async (url: string, options: AuthFetchOptions = {}, retryCount: number = 0): Promise<Response> => {
     console.log("✅ authFetch 실행됨. 현재 accessToken:", accessToken, "| retryCount:", retryCount);
+    console.log("📡 요청 URL:", url);
 
     let token = accessToken;
 

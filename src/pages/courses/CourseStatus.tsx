@@ -25,24 +25,11 @@ interface CourseStatusProps {
   courseId: number;
 }
 
-const CourseStatus = ({ stats, courseId }: CourseStatusProps) => {
-  const navigate = useNavigate();
-
-  console.log("🚀 CourseStatus 렌더링됨");
-  console.log("📦 courseId:", courseId);
-  console.log("📊 stats:", stats);
-  alert("✅ CourseStatus 컴포넌트가 실행됨");
-  alert("🧪 CourseStatus 진입했는지 테스트 중");
-
+const CourseStatus = ({ stats }: CourseStatusProps) => {
   const paceData = [
     { name: "평균", pace: stats.averagePace },
     { name: "나", pace: stats.myAveragePace ?? 0 },
   ];
-
-  useEffect(() => {
-    console.log("🚀 CourseStatus 렌더링됨");
-    console.log("📊 받은 stats:", stats);
-  }, [stats]);
 
   return (
     <div className={styles.container}>
