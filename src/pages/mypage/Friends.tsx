@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useAuthFetch } from "../../utils/useAuthFetch";
+import authAxios from "../../utils/authAxios";
 import { useLocationContext } from "../../contexts/LocationContext";
 import styles from "./myPage.module.css";
 
@@ -23,7 +23,6 @@ interface FriendRequestSent {
 }
 
 const Friends: React.FC = () => {
-  const authFetch = useAuthFetch();
   const { isSharing, toggleSharing, showFriendsOnMap, toggleShowFriends } = useLocationContext();
 
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -34,21 +33,14 @@ const Friends: React.FC = () => {
   const fetchAllData = async () => {
     try {
       const [friendsRes, receivedRes, sentRes] = await Promise.all([
-        authFetch("http://localhost:8080/friends"),
-        authFetch("http://localhost:8080/friends/request/received"),
-        authFetch("http://localhost:8080/friends/request/sent"),
+        authAxios.get<Friend[]>("/friends"),
+        authAxios.get<FriendRequestReceived[]>("/friends/request/received"),
+        authAxios.get<FriendRequestSent[]>("/friends/request/sent"),
       ]);
 
-      if (!friendsRes.ok || !receivedRes.ok || !sentRes.ok) {
-        throw new Error("데이터 요청 실패");
-      }
-
-      const [friendsData, receivedData, sentData]: [Friend[], FriendRequestReceived[], FriendRequestSent[]] =
-        await Promise.all([friendsRes.json(), receivedRes.json(), sentRes.json()]);
-
-      setFriends(friendsData);
-      setReceivedRequests(receivedData);
-      setSentRequests(sentData);
+      setFriends(friendsRes.data);
+      setReceivedRequests(receivedRes.data);
+      setSentRequests(sentRes.data);
     } catch (err) {
       console.error("❌ 친구 데이터 불러오기 실패:", err);
       setError("친구 데이터를 불러오는 데 실패했습니다.");
@@ -61,41 +53,36 @@ const Friends: React.FC = () => {
 
   const handleAccept = async (requesterId: number) => {
     try {
-      const res = await authFetch(`http://localhost:8080/friends/request/accept/${requesterId}`, {
-        method: "POST",
-      });
-      if (!res.ok) throw new Error("수락 실패");
+      await authAxios.post(`/friends/request/accept/${requesterId}`);
       alert("✅ 친구 요청을 수락했습니다.");
       fetchAllData();
     } catch (err) {
       console.error("❌ 수락 실패:", err);
+      alert("❌ 친구 요청 수락 중 오류 발생");
     }
   };
 
   const handleReject = async (requesterId: number) => {
     try {
-      const res = await authFetch(`http://localhost:8080/friends/request/reject/${requesterId}`, {
-        method: "POST",
-      });
-      if (!res.ok) throw new Error("거절 실패");
+      await authAxios.post(`/friends/request/reject/${requesterId}`);
       alert("🚫 친구 요청을 거절했습니다.");
       fetchAllData();
     } catch (err) {
       console.error("❌ 거절 실패:", err);
+      alert("❌ 친구 요청 거절 중 오류 발생");
     }
   };
 
   const handleDelete = async (friendId: number) => {
     if (!window.confirm("정말 친구를 삭제하시겠습니까?")) return;
+
     try {
-      const res = await authFetch(`http://localhost:8080/friends/${friendId}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error("삭제 실패");
+      await authAxios.delete(`/friends/${friendId}`);
       alert("🗑️ 친구가 삭제되었습니다.");
       fetchAllData();
     } catch (err) {
       console.error("❌ 삭제 실패:", err);
+      alert("❌ 친구 삭제 중 오류 발생");
     }
   };
 

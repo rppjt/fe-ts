@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./course.module.css";
-import { useAuthFetch } from "../../utils/useAuthFetch";
+import authAxios from "../../utils/authAxios";
 
 // ✅ 코스 타입 정의
 interface Course {
@@ -19,15 +19,12 @@ const Courses: React.FC = () => {
   const [sortOption, setSortOption] = useState<"LIKE" | "RECENT" | "DISTANCE">("LIKE");
 
   const navigate = useNavigate();
-  const authFetch = useAuthFetch();
 
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const res = await authFetch(`http://localhost:8080/course?sortType=${sortOption}`);
-        if (!res.ok) throw new Error("코스 불러오기 실패");
-        const data: Course[] = await res.json();
-        setCourses(data);
+        const res = await authAxios.get<Course[]>(`/course?sortType=${sortOption}`);
+        setCourses(res.data);
       } catch (err) {
         console.error("코스 불러오기 실패:", err);
       }
@@ -44,13 +41,9 @@ const Courses: React.FC = () => {
 
   const toggleBookmark = async (courseId: number, isBookmarked: boolean) => {
     try {
-      const res = await authFetch(`http://localhost:8080/course/bookmark/${courseId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isBookmarked: !isBookmarked }),
+      await authAxios.patch(`/course/bookmark/${courseId}`, {
+        isBookmarked: !isBookmarked,
       });
-
-      if (!res.ok) throw new Error("즐겨찾기 요청 실패");
 
       setCourses((prev) => prev.map((c) => (c.id === courseId ? { ...c, bookmarked: !isBookmarked } : c)));
     } catch (err) {

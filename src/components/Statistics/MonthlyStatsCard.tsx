@@ -1,5 +1,3 @@
-import React from "react";
-
 export interface MonthlyStatsData {
   totalRuns: number;
   totalDistance: number;

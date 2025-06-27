@@ -14,6 +14,11 @@ declare global {
     readonly env: ImportMetaEnv;
   }
 
+  interface ImportMetaEnv {
+    readonly VITE_API_BASE_URL: string;
+    // 여기에 다른 VITE_ 환경변수도 선언 가능
+  }
+
   // 선택적으로 아래처럼 명시적 타입도 추가 가능
   namespace kakao {
     namespace maps {

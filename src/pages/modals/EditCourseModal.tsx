@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import styles from "./editCourseModal.module.css";
-import { useAuthFetch } from "../../utils/useAuthFetch";
+import authAxios from "../../utils/authAxios"; // ✅ axios 인스턴스 import
 
 // ✅ props 타입 정의
 interface EditCourseModalProps {
@@ -14,37 +14,40 @@ interface EditCourseModalProps {
 }
 
 const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onSave }) => {
-  const [title, setTitle] = useState(course.title || "");
-  const [description, setDescription] = useState(course.description || "");
-  const authFetch = useAuthFetch();
+  const [title, setTitle] = useState(course.title);
+  const [description, setDescription] = useState(course.description);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    setTitle(course.title || "");
-    setDescription(course.description || "");
+    setTitle(course.title);
+    setDescription(course.description);
   }, [course]);
 
   const handleSave = async () => {
+    if (title.trim() === "") {
+      alert("제목은 비워둘 수 없습니다.");
+      return;
+    }
+
     if (title === course.title && description === course.description) {
       alert("변경된 내용이 없습니다.");
       return;
     }
 
     try {
-      const res = await authFetch(`http://localhost:8080/course/${course.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ title, description }),
-        headers: {
-          "Content-Type": "application/json",
-        },
+      setIsSubmitting(true);
+      const res = await authAxios.patch(`/course/${course.id}`, {
+        title,
+        description,
       });
 
-      if (!res.ok) throw new Error("수정 실패");
-
-      const updatedCourse = await res.json();
-      onSave(updatedCourse);
+      onSave(res.data);
       onClose();
     } catch (err: any) {
-      alert("수정 중 오류 발생: " + err.message);
+      console.error("❌ 수정 중 오류:", err);
+      alert("수정 중 오류 발생: " + (err?.response?.data?.message || err.message));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -54,10 +57,10 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onSa
         <h2>추천 코스 수정</h2>
 
         <label>제목</label>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} />
+        <input value={title} onChange={(e) => setTitle(e.target.value)} disabled={isSubmitting} />
 
         <label>설명</label>
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} />
+        <textarea value={description} onChange={(e) => setDescription(e.target.value)} disabled={isSubmitting} />
 
         <div className={styles.actions}>
           <button
@@ -65,6 +68,7 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onSa
               e.stopPropagation();
               handleSave();
             }}
+            disabled={isSubmitting}
           >
             저장
           </button>
@@ -73,6 +77,7 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onSa
               e.stopPropagation();
               onClose();
             }}
+            disabled={isSubmitting}
           >
             취소
           </button>

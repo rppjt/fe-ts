@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import { useAuthFetch } from "../../utils/useAuthFetch";
+import authAxios from "../../utils/authAxios";
 import styles from "./courseDetail.module.css";
 import CourseStatus from "./CourseStatus";
 
@@ -44,7 +44,6 @@ const CourseDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { accessToken, user: currentUser, isAuthReady } = useAuth();
-  const authFetch = useAuthFetch();
 
   const [course, setCourse] = useState<(CourseDetail & CourseStats) | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -54,19 +53,10 @@ const CourseDetail: React.FC = () => {
     if (!id) return;
 
     try {
-      const res = await authFetch(`http://localhost:8080/course/${id}`);
-
-      if (res.status === 401) {
-        setError("🔐 로그인이 필요합니다.");
-        return;
-      }
-
-      if (!res.ok) throw new Error("응답 실패");
-
-      const data: CourseDetail & CourseStats = await res.json();
+      const res = await authAxios.get<CourseDetail & CourseStats>(`/course/${id}`);
+      const data = res.data;
       setCourse(data);
 
-      // 통계 필드가 아예 누락된 경우에만 통계 오류로 간주
       if (data.totalCompletionCount === undefined || data.topRunners === undefined) {
         setStatsError(true);
       } else {
@@ -88,12 +78,7 @@ const CourseDetail: React.FC = () => {
     if (!id || !course) return;
 
     try {
-      const res = await authFetch(`http://localhost:8080/like/${id}`, {
-        method: "POST",
-      });
-
-      if (!res.ok) throw new Error("좋아요 요청 실패");
-
+      await authAxios.post(`/like/${id}`);
       setCourse((prev) =>
         prev
           ? {
@@ -112,14 +97,9 @@ const CourseDetail: React.FC = () => {
     if (!id || !course) return;
 
     try {
-      const res = await authFetch(`http://localhost:8080/course/bookmark/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isBookmarked: !course.isBookmarked }),
+      await authAxios.patch(`/course/bookmark/${id}`, {
+        isBookmarked: !course.isBookmarked,
       });
-
-      if (!res.ok) throw new Error("북마크 요청 실패");
-
       setCourse((prev) => prev && { ...prev, isBookmarked: !prev.isBookmarked });
     } catch (err) {
       console.error("북마크 실패:", err);
@@ -147,7 +127,6 @@ const CourseDetail: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      {course && <CourseStatus stats={course} courseId={course.id} />}
       <h2>🏁 {course.title}</h2>
       <p>🏃‍♂️ {course.userName}님이 만든 러닝 코스!</p>
       <p>📍 도착지: {course.endLocationName}</p>
@@ -170,6 +149,7 @@ const CourseDetail: React.FC = () => {
           ▶️ 따라가기
         </button>
       </div>
+      {course && <CourseStatus stats={course} courseId={course.id} />}
     </div>
   );
 };

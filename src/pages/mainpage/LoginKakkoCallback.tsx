@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import authAxios from "../../utils/authAxios";
 
 const LoginKakkoCallback = () => {
   const [searchParams] = useSearchParams();
@@ -12,13 +13,10 @@ const LoginKakkoCallback = () => {
     const error = searchParams.get("error");
 
     if (success === "true") {
-      fetch("http://localhost:8080/auth/token", {
-        method: "GET",
-        credentials: "include",
-      })
-        .then((res) => res.json())
-        .then((data: { access_token: string }) => {
-          const token = data.access_token;
+      authAxios
+        .get("/auth/token", { withCredentials: true }) // 백엔드에 따라 withCredentials 유지 필요
+        .then((res) => {
+          const token = res.data.access_token;
           if (token) {
             setAccessToken(token);
             navigate("/home");

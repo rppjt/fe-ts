@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuthFetch } from "../../utils/useAuthFetch";
+import authAxios from "../../utils/authAxios";
 import styles from "../mypage/myPage.module.css";
 
 // ✅ 코스 타입 정의
@@ -20,14 +20,12 @@ const MyRecommendedCourses: React.FC = () => {
   const [editDescription, setEditDescription] = useState<string>("");
 
   const navigate = useNavigate();
-  const authFetch = useAuthFetch();
 
   useEffect(() => {
     const fetchMyCourses = async () => {
       try {
-        const res = await authFetch("http://localhost:8080/course/my");
-        const data: Course[] = await res.json();
-        setCourses(data);
+        const res = await authAxios.get<Course[]>("/course/my");
+        setCourses(res.data);
       } catch (err) {
         console.error("❌ 내가 만든 추천 코스 불러오기 실패:", err);
       }
@@ -45,10 +43,7 @@ const MyRecommendedCourses: React.FC = () => {
     if (!confirmDelete) return;
 
     try {
-      await authFetch(`http://localhost:8080/course/${id}`, {
-        method: "DELETE",
-      });
-
+      await authAxios.delete(`/course/${id}`);
       setCourses((prev) => prev.filter((c) => c.id !== id));
       alert("✅ 추천 코스가 삭제되었습니다");
     } catch (err) {
@@ -70,19 +65,10 @@ const MyRecommendedCourses: React.FC = () => {
 
   const handleEditSubmit = async () => {
     try {
-      const res = await authFetch(`http://localhost:8080/course/${editId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title: editTitle,
-          description: editDescription,
-        }),
+      await authAxios.patch(`/course/${editId}`, {
+        title: editTitle,
+        description: editDescription,
       });
-
-      if (!res.ok) throw new Error("수정 실패");
-
       setCourses((prev) =>
         prev.map((c) => (c.id === editId ? { ...c, title: editTitle, description: editDescription } : c))
       );

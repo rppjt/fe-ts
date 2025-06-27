@@ -4,6 +4,7 @@
  * @returns 포맷된 문자열 (예: "01:05:07")
  */
 export const formatElapsedTime = (seconds: number): string => {
+  if (seconds == null || isNaN(seconds) || seconds < 1) return "기록 없음";
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
