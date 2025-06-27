@@ -10,8 +10,8 @@ import StopButton from "./buttons/StopButton";
 import RunSummary from "./summaries/RunSummary";
 import styles from "./MapContainer.module.css";
 import html2canvas from "html2canvas";
-import { useAuthFetch } from "../utils/useAuthFetch";
-import { useUploadFetch } from "../utils/useUploadFetch";
+import authAxios from "../utils/authAxios";
+import uploadAxios from "../utils/uploadAxios";
 import { useLocationContext } from "../contexts/LocationContext";
 
 interface LatLng {
@@ -45,8 +45,6 @@ const MapContainer = () => {
   const friendMarkersRef = useRef<kakao.maps.Marker[]>([]);
   const coursePolylineRef = useRef<kakao.maps.Polyline | null>(null);
   const navigate = useNavigate();
-  const authFetch = useAuthFetch();
-  const uploadFetch = useUploadFetch();
   const { showFriendsOnMap } = useLocationContext();
   const [mapReady, setMapReady] = useState(false);
 
@@ -76,11 +74,7 @@ const MapContainer = () => {
 
   const updateUserLocation = async (lat: number, lng: number): Promise<void> => {
     try {
-      await authFetch("http://localhost:8080/location", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ latitude: lat, longitude: lng }),
-      });
+      await authAxios.patch("/location", { latitude: lat, longitude: lng });
       console.log("📡 위치 서버 전송 완료");
     } catch (error) {
       console.error("❌ 위치 업데이트 실패:", error);
@@ -216,9 +210,8 @@ const MapContainer = () => {
     formData.append("data", new Blob([JSON.stringify(dataPayload)], { type: "application/json" }));
 
     try {
-      const response = await uploadFetch("http://localhost:8080/running-record", formData);
-      if (!response.ok) throw new Error("서버 응답 실패");
-
+      const response = await uploadAxios.post("/running-record", formData);
+      console.log("✅ 저장 완료:", response.data);
       alert("✅ 러닝 기록이 저장되었습니다!");
       setShowSummary(false);
       navigate("/my-records");
@@ -251,11 +244,7 @@ const MapContainer = () => {
       }
 
       try {
-        const res = await authFetch(`http://localhost:8080/course/${courseId}`);
-        if (!res.ok) throw new Error("추천 코스 로딩 실패");
-
-        const data = await res.json();
-
+        const { data } = await authAxios.get(`/course/${courseId}`);
         // 타입 정의 (선택적으로 빼기 가능)
         interface CourseData {
           pathGeoJson?: any;
@@ -313,74 +302,52 @@ const MapContainer = () => {
   }, [mapReady]);
 
   useEffect(() => {
-    const fetchNearbyFriends = async (): Promise<void> => {
-      if (!showFriendsOnMap || !mapRef.current) return;
+    const fetchNearbyFriendsWithCondition = async (): Promise<void> => {
+      if (!showFriendsOnMap || !mapRef.current || isFetching) return;
 
-      try {
-        const res: Response = await authFetch("http://localhost:8080/location/nearby?radius=0.5");
-        if (!res.ok) throw new Error("친구 목록 가져오기 실패");
-
-        const data: {
-          latitude: number;
-          longitude: number;
-          nickname: string;
-          profileImage?: string;
-        }[] = await res.json();
-
-        // 기존 마커 제거
-        friendMarkersRef.current.forEach((marker: kakao.maps.Marker) => marker.setMap(null));
-        friendMarkersRef.current = [];
-
-        if (!Array.isArray(data) || data.length === 0) return;
-
-        const center = mapRef.current.getCenter();
-        const centerLat = center.getLat();
-        const centerLng = center.getLng();
-
-        data.forEach(({ latitude, longitude, nickname, profileImage }) => {
-          const distance = getDistanceFromLatLonInMeters(centerLat, centerLng, latitude, longitude);
-          if (distance <= 500) {
-            const markerImage = new window.kakao.maps.MarkerImage(
-              profileImage || "/default-profile.png",
-              new window.kakao.maps.Size(40, 40),
-              { offset: new window.kakao.maps.Point(20, 20) }
-            );
-
-            const marker = new window.kakao.maps.Marker({
-              position: new window.kakao.maps.LatLng(latitude, longitude),
-              map: mapRef.current!,
-              title: nickname,
-              image: markerImage,
-            });
-
-            friendMarkersRef.current.push(marker);
-          }
-        });
-      } catch (err) {
-        console.error("📛 친구 마커 로딩 실패:", err);
-      }
-    };
-
-    const interval: number = window.setInterval(fetchNearbyFriends, 10000);
-    fetchNearbyFriends();
-
-    return () => clearInterval(interval);
-  }, [showFriendsOnMap]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
-
           const prev = prevPositionRef.current;
           const movedEnough = !prev || getDistanceFromLatLonInMeters(prev.lat, prev.lng, latitude, longitude) > 50;
 
-          if (!movedEnough || isFetching) return;
+          if (!movedEnough) return;
 
           setIsFetching(true);
           try {
-            await authFetch(`http://localhost:8080/location/nearby?radius=0.5`);
+            const { data } = await authAxios.get("/location/nearby", { params: { radius: 0.5 } });
+
+            // 기존 마커 제거
+            friendMarkersRef.current.forEach((marker: kakao.maps.Marker) => marker.setMap(null));
+            friendMarkersRef.current = [];
+
+            if (!Array.isArray(data) || data.length === 0) return;
+
+            const center = mapRef.current?.getCenter();
+            if (!center) return;
+            const centerLat = center.getLat();
+            const centerLng = center.getLng();
+
+            data.forEach(({ latitude, longitude, nickname, profileImage }) => {
+              const distance = getDistanceFromLatLonInMeters(centerLat, centerLng, latitude, longitude);
+              if (distance <= 500) {
+                const markerImage = new window.kakao.maps.MarkerImage(
+                  profileImage || "/default-profile.png",
+                  new window.kakao.maps.Size(40, 40),
+                  { offset: new window.kakao.maps.Point(20, 20) }
+                );
+
+                const marker = new window.kakao.maps.Marker({
+                  position: new window.kakao.maps.LatLng(latitude, longitude),
+                  map: mapRef.current!,
+                  title: nickname,
+                  image: markerImage,
+                });
+
+                friendMarkersRef.current.push(marker);
+              }
+            });
+
             prevPositionRef.current = { lat: latitude, lng: longitude };
           } catch (err) {
             console.error("❌ 친구 위치 조회 실패:", err);
@@ -391,10 +358,13 @@ const MapContainer = () => {
         (err) => console.error("위치 조회 실패", err),
         { enableHighAccuracy: true }
       );
-    }, 30000); // 30초마다 실행
+    };
+
+    const interval = setInterval(fetchNearbyFriendsWithCondition, 30000); // 10초마다 위치 변화 체크 + 마커 갱신
+    fetchNearbyFriendsWithCondition();
 
     return () => clearInterval(interval);
-  }, []);
+  }, [showFriendsOnMap]);
 
   useEffect(() => {
     const saved = localStorage.getItem("runningState");

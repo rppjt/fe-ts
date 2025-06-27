@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import { useAuthFetch } from "../../utils/useAuthFetch";
+import authAxios from "../../utils/authAxios";
 import LogoutButton from "../../components/buttons/LogoutButton";
 import MapContainer from "../../components/MapContainer";
 import styles from "../mainpage/home.module.css";
@@ -34,7 +34,6 @@ const Home = () => {
   const [showRecoveryPrompt, setShowRecoveryPrompt] = useState(false);
 
   const navigate = useNavigate();
-  const authFetch = useAuthFetch();
   const { accessToken } = useAuth();
 
   useEffect(() => {
@@ -42,9 +41,8 @@ const Home = () => {
 
     const fetchUser = async () => {
       try {
-        const res = await authFetch("http://localhost:8080/user");
-        const data: User = await res.json();
-        setUser(data);
+        const res = await authAxios.get<User>("/user");
+        setUser(res.data);
       } catch (err) {
         console.error("사용자 정보 가져오기 실패:", err);
       }
@@ -52,9 +50,8 @@ const Home = () => {
 
     const fetchRecommendations = async () => {
       try {
-        const res = await authFetch("http://localhost:8080/course?sortType=LIKE");
-        const data: Course[] = await res.json();
-        setAllCourses(data.slice(0, 3));
+        const res = await authAxios.get<Course[]>("/course?sortType=LIKE");
+        setAllCourses(res.data.slice(0, 3));
       } catch (err) {
         console.error("추천 코스 불러오기 실패:", err);
       }
@@ -62,9 +59,8 @@ const Home = () => {
 
     const fetchPopularCourses = async () => {
       try {
-        const res = await authFetch("http://localhost:8080/stats/popular-courses");
-        const data: PopularCourse[] = await res.json();
-        setPopularCourses(data);
+        const res = await authAxios.get<PopularCourse[]>("/stats/popular-courses");
+        setPopularCourses(res.data);
       } catch (err) {
         console.error("인기 코스 불러오기 실패:", err);
       }

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import styles from "./myRecords.module.css";
-import { useAuthFetch } from "../../utils/useAuthFetch";
+import authAxios from "../../utils/authAxios";
 
 // ✅ GeoJSON 타입 정의
 interface GeoJsonLine {
@@ -28,18 +28,16 @@ const DetailMyRecord: React.FC = () => {
   const polylineRef = useRef<any>(null);
   const [record, setRecord] = useState<RunningRecord | null>(null);
   const [isRecommended, setIsRecommended] = useState<boolean>(false);
-  const authFetch = useAuthFetch();
   const navigate = useNavigate();
 
   // 기록 조회
   useEffect(() => {
     const fetchRecord = async () => {
       try {
-        const res = await authFetch(`http://localhost:8080/running-record/${id}`);
-        if (!res.ok) throw new Error("기록 불러오기 실패");
-        const data: RunningRecord = await res.json();
-        setRecord(data);
-        setIsRecommended(data.isRegisteredAsCourse ?? false);
+        const res = await authAxios.get<RunningRecord>(`/running-record/${id}`);
+
+        setRecord(res.data);
+        setIsRecommended(res.data.isRegisteredAsCourse ?? false);
       } catch (err) {
         console.error(err);
       }
@@ -79,15 +77,7 @@ const DetailMyRecord: React.FC = () => {
     if (!window.confirm("이 기록을 추천코스로 등록하시겠습니까?")) return;
 
     try {
-      const res = await authFetch(`http://localhost:8080/course`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ recordId: parseInt(id!) }),
-      });
-
-      if (!res.ok) throw new Error("추천 등록 실패");
+      await authAxios.post("/course", { recordId: parseInt(id!) });
       alert("🚀 추천코스로 등록되었습니다!");
       navigate("/courses");
       setIsRecommended(true);
@@ -110,15 +100,7 @@ const DetailMyRecord: React.FC = () => {
         })
       );
 
-      const response = await authFetch(`http://localhost:8080/running-record/${record.id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`서버 응답 오류: ${response.status} - ${errorText}`);
-      }
-
+      await authAxios.delete(`/running-record/${record!.id}`);
       alert("✅ 삭제 완료! 복구 페이지로 이동합니다.");
       navigate("/recover");
     } catch (err) {

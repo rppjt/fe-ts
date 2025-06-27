@@ -1,4 +1,3 @@
-import React from "react";
 import "./KakkoLoginButton.css"; // ✅ 기존 CSS 그대로 사용
 
 const KakkoLoginButton = () => {

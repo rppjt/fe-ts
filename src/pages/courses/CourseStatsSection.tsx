@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import styles from "./courseStatsSection.module.css";
+import authAxios from "../../utils/authAxios";
 
 // ✅ 타입 정의
 interface TopRunner {
@@ -33,23 +34,15 @@ const CourseStatsSection: React.FC<Props> = ({ courseId, myName }) => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch(`http://localhost:8080/stats/recommended-course/${courseId}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-
-        if (!res.ok) throw new Error("통계 로딩 실패");
-
-        const data: CourseStats = await res.json();
-        setStats(data);
+        const res = await authAxios.get<CourseStats>(`/stats/recommended-course/${courseId}`);
+        setStats(res.data);
       } catch (err) {
         console.error("❌ 코스 통계 불러오기 실패:", err);
         setError("통계를 불러오지 못했습니다.");
       }
     };
 
-    fetchStats();
+    if (accessToken) fetchStats();
   }, [courseId, accessToken]);
 
   if (error) return <p>{error}</p>;

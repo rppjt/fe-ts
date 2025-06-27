@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useAuth } from "./AuthContext";
-import { useAuthFetch } from "../utils/useAuthFetch";
+import authAxios from "../utils/authAxios";
 
 interface LocationContextType {
   isSharing: boolean;
@@ -16,7 +16,6 @@ interface LocationProviderProps {
 }
 
 export const LocationProvider = ({ children }: LocationProviderProps) => {
-  const authFetch = useAuthFetch();
   const { accessToken, isAuthReady } = useAuth();
 
   const [isSharing, setIsSharing] = useState<boolean>(false);
@@ -26,15 +25,12 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
   });
 
   useEffect(() => {
-    if (!isAuthReady) return;
-    if (!accessToken) return;
+    if (!isAuthReady || !accessToken) return;
 
     const fetchSharingStatus = async () => {
       try {
-        const res = await authFetch("http://localhost:8080/location/sharing");
-        if (!res.ok) throw new Error();
-        const data = await res.json();
-        setIsSharing(data.isSharing);
+        const res = await authAxios.get("/location/sharing");
+        setIsSharing(res.data.isSharing);
       } catch (err) {
         console.error("📛 위치 공유 상태 불러오기 실패", err);
       }
@@ -46,18 +42,10 @@ export const LocationProvider = ({ children }: LocationProviderProps) => {
   const toggleSharing = async () => {
     const next = !isSharing;
     try {
-      const res = await authFetch("http://localhost:8080/location/sharing", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isSharing: next }),
-      });
-      if (!res.ok) throw new Error();
-
-      const result = await res.json();
-      setIsSharing(result.isSharing);
-
-      if (result.message) {
-        alert(result.message);
+      const res = await authAxios.patch("/location/sharing", { isSharing: next });
+      setIsSharing(res.data.isSharing);
+      if (res.data.message) {
+        alert(res.data.message);
       }
     } catch (err) {
       console.error("📛 위치 공유 전송 실패:", err);

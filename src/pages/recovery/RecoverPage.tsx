@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./RecoverPage.module.css";
-import { useAuthFetch } from "../../utils/useAuthFetch";
+import authAxios from "../../utils/authAxios";
 
 // ✅ 복구 데이터 타입 정의
 interface RecoveryData {
@@ -25,7 +25,6 @@ const RecoverPage: React.FC = () => {
   const navigate = useNavigate();
   const [recoveryData, setRecoveryData] = useState<RecoveryData | null>(null);
   const alreadyRedirectedRef = useRef<boolean>(false);
-  const authFetch = useAuthFetch();
 
   useEffect(() => {
     const data = localStorage.getItem("unsavedRun");
@@ -66,12 +65,11 @@ const RecoverPage: React.FC = () => {
 
       formData.append("data", new Blob([JSON.stringify(dataPayload)], { type: "application/json" }));
 
-      const res = await authFetch("http://localhost:8080/running-record", {
-        method: "POST",
-        body: formData,
+      await authAxios.post("/running-record", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
-
-      if (!res.ok) throw new Error("복구 저장 실패");
 
       alert("✅ 기록이 복구되어 저장되었습니다!");
       localStorage.removeItem("unsavedRun");

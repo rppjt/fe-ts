@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./popularCourses.module.css";
-import { useAuthFetch } from "../../utils/useAuthFetch";
+import authAxios from "../../utils/authAxios";
 
 interface PopularCourse {
   courseId: number;
@@ -18,12 +18,11 @@ const PopularCourses = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const authFetch = useAuthFetch();
 
   useEffect(() => {
-    authFetch("/stats/popular-courses")
-      .then((res) => res.json())
-      .then(setCourses)
+    authAxios
+      .get("/stats/popular-courses")
+      .then((res) => setCourses(res.data))
       .catch(() => setError("데이터를 불러오지 못했습니다."))
       .finally(() => setLoading(false));
   }, []);

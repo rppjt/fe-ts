@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { useAuthFetch } from "../utils/useAuthFetch";
 import MapContainer from "../components/MapContainer";
+import authAxios from "../utils/authAxios";
 
 // ✅ 코스 정보 타입 정의
 interface CourseDetail {
@@ -17,8 +17,6 @@ const RunPage: React.FC = () => {
   const courseId = searchParams.get("courseId");
 
   const [course, setCourse] = useState<CourseDetail | null>(null);
-  const authFetch = useAuthFetch();
-
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -28,19 +26,15 @@ const RunPage: React.FC = () => {
       if (!courseId) return;
 
       try {
-        const res = await authFetch(`http://localhost:8080/course/${courseId}`);
-        if (!res.ok) throw new Error("코스 정보 불러오기 실패");
-
-        const data: CourseDetail = await res.json();
-        setCourse(data);
+        const res = await authAxios.get<CourseDetail>(`/course/${courseId}`);
+        setCourse(res.data); // ✅ Axios는 .data로 실제 응답 반환
       } catch (err) {
         console.error("❌ 코스 정보 가져오기 실패:", err);
       }
     };
 
     fetchCourseDetail();
-  }, [authFetch, courseId]);
-
+  }, [courseId]);
   return (
     <div style={{ padding: "1rem" }}>
       <h2>🏃 추천 코스 따라 달리기</h2>

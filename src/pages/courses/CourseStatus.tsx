@@ -1,7 +1,5 @@
-import { useNavigate } from "react-router-dom";
 import styles from "./courseStatus.module.css";
 import { formatElapsedTime } from "../../utils/timeUtils";
-import { useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList } from "recharts";
 
 interface RunnerStat {
@@ -57,14 +55,18 @@ const CourseStatus = ({ stats }: CourseStatusProps) => {
         </ResponsiveContainer>
 
         <h4 className={styles.sectionTitle}>🏆 상위 러너</h4>
-        <ul className={styles.runnerList}>
-          {stats.topRunners.map((runner, i) => (
-            <li key={runner.runnerName}>
-              {i + 1}위 {runner.runnerName} | 기록: {formatElapsedTime(runner.bestCompletionTimeSeconds)} | 페이스:{" "}
-              {runner.bestPace.toFixed(1)}분/km
-            </li>
-          ))}
-        </ul>
+        {stats.topRunners.length === 0 ? (
+          <p className={styles.emptyNotice}>🙅 상위 러너가 아직 없습니다.</p>
+        ) : (
+          <ul className={styles.runnerList}>
+            {stats.topRunners.map((runner, i) => (
+              <li key={runner.runnerName}>
+                {i + 1}위 {runner.runnerName} | 기록: {formatElapsedTime(runner.bestCompletionTimeSeconds)} | 페이스:{" "}
+                {runner.bestPace.toFixed(1)}분/km
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

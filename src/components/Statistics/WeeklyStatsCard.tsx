@@ -1,5 +1,3 @@
-import React from "react";
-
 export interface WeeklyStatsData {
   totalRuns: number;
   totalDistance: number;
