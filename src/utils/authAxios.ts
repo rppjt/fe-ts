@@ -2,7 +2,8 @@ import axios, { AxiosInstance, AxiosResponse, AxiosError, InternalAxiosRequestCo
 import { getAccessToken, setAccessToken } from "../contexts/AuthContextUtils";
 import type { AxiosRequestConfig } from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// CRA에서는 이렇게 써야 함
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 const authAxios: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
