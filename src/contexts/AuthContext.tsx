@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import authAxios from "../utils/authAxios";
 
 // ✅ 유저 타입 정의
 interface User {
@@ -48,20 +49,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     setAccessToken(token);
 
-    fetch("http://localhost:8080/user", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    })
+    authAxios
+      .get<User>("/user")
       .then((res) => {
-        if (!res.ok) throw new Error("유저 응답 실패");
-        return res.json();
-      })
-      .then((data: User) => {
-        console.log("✅ 사용자 정보 불러오기 성공:", data);
-        setUser(data);
+        console.log("✅ 사용자 정보 불러오기 성공:", res.data);
+        setUser(res.data);
       })
       .catch((err) => {
         console.error("❌ 사용자 정보 로딩 실패:", err);
@@ -69,7 +61,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       })
       .finally(() => {
         console.log("🟢 AuthContext 초기화 완료됨");
-        setIsAuthReady(true); // 여기에만!
+        setIsAuthReady(true);
       });
   }, []);
 
