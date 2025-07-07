@@ -14,19 +14,25 @@ const LoginKakkoCallback = () => {
 
     if (success === "true") {
       authAxios
-        .get("/auth/token", { withCredentials: true }) // 백엔드에 따라 withCredentials 유지 필요
+        .get("/auth/token", { withCredentials: true })
         .then((res) => {
           const token = res.data.access_token;
           if (token) {
-            setAccessToken(token);
-            navigate("/home");
+            setAccessToken(token); // 👉 localStorage 저장
+            return authAxios.get("/user"); // 👉 여기서 user도 가져오기
           } else {
-            console.error("❌ accessToken 없음");
-            navigate("/");
+            throw new Error("No accessToken in response");
           }
         })
+        .then((res) => {
+          // 사용자 정보 저장
+          const userData = res.data;
+          // useAuth().setUser 또는 다른 상태 저장
+          // 예: setUser(userData); (필요 시)
+          navigate("/home");
+        })
         .catch((err) => {
-          console.error("❌ token 요청 실패:", err);
+          console.error("❌ 로그인 처리 실패:", err);
           navigate("/");
         });
     } else {

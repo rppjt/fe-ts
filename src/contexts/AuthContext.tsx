@@ -39,6 +39,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   useEffect(() => {
+    const isOAuthRedirect = window.location.pathname.startsWith("/login/oauth2");
+
+    // ✅ 로그인 리디렉션 도중에는 모든 요청 중단
+    if (isOAuthRedirect) {
+      console.log("🛑 OAuth 리디렉션 중 - /user 요청 중단");
+      return;
+    }
+
     const token = localStorage.getItem("accessToken");
 
     if (!token) {
@@ -60,7 +68,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser(null);
       })
       .finally(() => {
-        console.log("🟢 AuthContext 초기화 완료됨");
         setIsAuthReady(true);
       });
   }, []);
